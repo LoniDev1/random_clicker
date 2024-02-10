@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clicker Website</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            text-align: center;
+            margin: 50px;
+        }
+
+        #clicker {
+            font-size: 24px;
+            padding: 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #clicker:hover {
+            background-color: #45a049;
+        }
+
+        #dark-mode-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            cursor: pointer;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #dark-mode-btn:hover {
+            background-color: #555;
+        }
+
+        #code-input {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #stats {
+            margin-top: 20px;
+        }
+
+        #upgrades {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<button id="dark-mode-btn" onclick="toggleDarkMode()">Dark Mode</button>
+
+<h1>Clicker Website</h1>
+<p>Click the button to increase the count:</p>
+
+<button id="clicker" onclick="incrementCount()">Click me! Count: 0</button>
+
+<div id="code-input">
+    <label for="code">Enter Cookie Code:</label>
+    <input type="text" id="code" placeholder="Enter your code here">
+    <button onclick="submitCode()">Submit</button>
+</div>
+
+<div id="stats">
+    <h2>Stats</h2>
+    <p>Clicks per click: <span id="clicksPerClick">1</span></p>
+    <p>Clicks per second: <span id="clicksPerSecond">0</span></p>
+    <p>Total clicks: <span id="totalClicks">0</span></p>
+</div>
+
+<div id="upgrades">
+    <h2>Upgrades</h2>
+    <button onclick="buyUpgrade('clicksPerClick', 2)">Buy Clicks Per Click Upgrade (Cost: <span id="clicksPerClickCost">50</span> clicks)</button>
+    <button onclick="buyUpgrade('clicksPerSecond', 1)">Buy Clicks Per Second Upgrade (Cost: <span id="clicksPerSecondCost">100</span> clicks)</button>
+</div>
+
+<script>
+    let count = 0;
+    let clicksPerClick = 1;
+    let clicksPerSecond = 0;
+    let totalClicks = 0;
+    let clicksPerClickCost = 50;
+    let clicksPerSecondCost = 100;
+
+    // Check if the code has been used before
+    const codeUsed = getCookie('codeUsed') === 'true';
+
+    if (codeUsed) {
+        document.getElementById('code-input').style.display = 'none';
+    }
+
+    function incrementCount() {
+        count += clicksPerClick;
+        totalClicks += clicksPerClick;
+        document.getElementById('clicker').innerText = `Click me! Count: ${count}`;
+        updateStats();
+    }
+
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+    }
+
+    function submitCode() {
+        if (!codeUsed) {
+            const codeInput = document.getElementById('code').value;
+            applyCode(codeInput);
+        } else {
+            alert('Code can only be used once per visit.');
+        }
+    }
+
+    function applyCode(code) {
+        switch (code) {
+            case 'cookie1':
+                count += 100;
+                totalClicks += 100;
+                break;
+            case 'lonidev1':
+                count += 10000;
+                totalClicks += 10000;
+                break;
+            case 'double':
+                clicksPerClick *= 2;
+                clicksPerSecond *= 2;
+                break;
+            // Add more cases for other codes if needed
+        }
+
+        document.getElementById('clicker').innerText = `Click me! Count: ${count}`;
+        updateStats();
+
+        // Mark code as used in the cookie
+        setCookie('codeUsed', 'true');
+        document.getElementById('code-input').style.display = 'none';
+    }
+
+    function updateStats() {
+        document.getElementById('clicksPerClick').innerText = clicksPerClick;
+        document.getElementById('clicksPerSecond').innerText = clicksPerSecond;
+        document.getElementById('totalClicks').innerText = totalClicks;
+    }
+
+    function buyUpgrade(upgradeType, increaseValue) {
+        let cost = 0;
+        if (upgradeType === 'clicksPerClick') {
+            cost = clicksPerClickCost;
+        } else if (upgradeType === 'clicksPerSecond') {
+            cost = clicksPerSecondCost;
+        }
+
+        if (count >= cost) {
+            count -= cost;
+            if (upgradeType === 'clicksPerClick') {
+                clicksPerClick += increaseValue;
+                clicksPerClickCost *= 2; // Increase cost for the next upgrade
+                document.getElementById('clicksPerClickCost').innerText = clicksPerClickCost;
+            } else if (upgradeType === 'clicksPerSecond') {
+                clicksPerSecond += increaseValue;
+                clicksPerSecondCost *= 2; // Increase cost for the next upgrade
+                document.getElementById('clicksPerSecondCost').innerText = clicksPerSecondCost;
+                startAutoClick();
+            }
+            updateStats();
+        } else {
+            alert('Not enough clicks to buy this upgrade!');
+        }
+    }
+
+    function startAutoClick() {
+        setInterval(function () {
+            count += clicksPerSecond;
+            totalClicks += clicksPerSecond;
+            document.getElementById('clicker').innerText = `Click me! Count: ${count}`;
+            updateStats();
+        }, 1000);
+    }
+
+    // Helper functions for handling cookies
+    function setCookie(name, value) {
+        document.cookie = `${name}=${value}`;
+    }
+
+    function getCookie(name) {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) {
+                return cookie.substring(name.length + 1);
+            }
+        }
+        return '';
+    }
+</script>
+
+</body>
+</html>
